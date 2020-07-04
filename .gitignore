@@ -1,0 +1,4 @@
+node_modules
+public/injectable.js
+package-lock.json
+src/generated/*

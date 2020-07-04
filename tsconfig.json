@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "removeComments": true,
+    "noImplicitAny": false,
+    "preserveConstEnums": true,
+    "target": "ES2018"
+  },
+  "include": [
+    "src/*", "src/content.ts", "src/object/Food.ts", "src/object/Square.ts", "src/object/Snake.ts", "src/object/Drawable.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.glsl",
+    "**/*.spec.ts"
+  ]
+}

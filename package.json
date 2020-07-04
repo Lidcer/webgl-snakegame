@@ -1,0 +1,27 @@
+{
+  "name": "webgl-snake-game",
+  "version": "1.0.0",
+  "description": "Simple webGL snake game",
+  "main": "webpack.config.js",
+  "scripts": {
+    "build": "node ./scripts/generateShaders.js && webpack",
+    "build:w": "webpack --watch --progress",
+    "build:shader:watch": "node ./scripts/generateShaders.js -w",
+    "webpack-dev:watch": "webpack webpack -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lidcer/webgl-snakegame.git"
+  },
+  "author": "Lidcer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Lidcer/webgl-snakegame/issues"
+  },
+  "homepage": "https://github.com/Lidcer/webgl-snakegame#readme",
+  "devDependencies": {
+    "@types/node": "^14.0.14",
+    "webpack": "^4.41.6",
+    "webpack-cli": "^3.3.11"
+  }
+}
