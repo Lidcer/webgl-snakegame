@@ -1,6 +1,9 @@
+//@ts-check
+
 const fs = require('fs');
 const path = require('path');
 const shaderDirectory = path.join(__dirname, '..' , 'src', 'shaders');
+const generatedDirectory = path.join(__dirname, '..' , 'src', 'generated');
 const generatedShaderDirectory = path.join(__dirname, '..' , 'src', 'generated', 'shaders.ts');
 
 const shouldWatchFiles = process.argv.includes('-w') || process.argv.includes('-watch');  
@@ -12,10 +15,11 @@ if (shouldWatchFiles) {
 const shader = new Map()
 
 async function generate(){
-    const filesName = await readDirectory(shaderDirectory) 
-    let generatedShaderFile = '//Generated file\n'
+    createDirectoryIfDoesNotExist(generatedDirectory);
+    const filesName = await readDirectory(shaderDirectory); 
+    let generatedShaderFile = '//Generated file\n';
     let shouldWrite = false; 
-    for (const fileName of filesName){
+    for (const fileName of filesName) {
         const shaderName = fileName.split('.')[0]; 
         const text = await readFile(path.join(__dirname, '..' , 'src', 'shaders', fileName));
         if(shader.get(fileName) === undefined || shader.get(fileName) !== text) {
@@ -43,7 +47,7 @@ function watch() {
 function readDirectory(path){
     return new Promise((resolve, reject) => {
         fs.readdir(path, 'utf-8', (err, files) => {
-            if(err) return reject(new Error(err))
+            if(err) return reject(new Error(err.message))
             resolve(files);
         })
     });
@@ -52,7 +56,7 @@ function readDirectory(path){
 function readFile(path){
     return new Promise((resolve, reject) => {
         fs.readFile(path, 'utf-8', (err, data) => {
-            if(err) return reject(new Error(err))
+            if (err) return reject(new Error(err.message))
             resolve(data);
         })
     });
@@ -61,12 +65,23 @@ function readFile(path){
 function writeFile(path, data) {
     return new Promise((resolve, reject) => {
         fs.writeFile(path, data, (err) => {
-            if(err) return reject(new Error(err))
+            if (err) return reject(new Error(err.message))
             resolve();
         })
     });
 }
 
+function createDirectoryIfDoesNotExist(path) {
+    return new Promise((resolve, reject) => {
+        fs.exists(path, (bool) => { 
+            if (bool) return resolve();
+            fs.mkdir(path, (err) => {
+                if (err) return reject(new Error(err.message));
+                resolve();
+            });
+        });
+    });
+}
 
 
 if (shouldWatchFiles) {
