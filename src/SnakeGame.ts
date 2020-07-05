@@ -1,12 +1,12 @@
 import { Renderer } from './Renderer';
 import { vertexShader, fragmentShader } from './generated/shaders';
 import { Input, Controls } from './Input';
-import { Snake } from './object/Snake';
-import { Food } from './object/Food';
-import { WindowInfo } from './object/Interfaces';
-import { isContext } from 'vm';
+import { Snake } from './objects/Snake';
+import { Food } from './objects/Food';
+import { WindowInfo } from './objects/Interfaces';
 import { random, clamp } from './Utils';
 import { GameDom } from './GameDom';
+import { GameOptions } from './GameOptions';
 
 enum GameControls {
     Up,
@@ -17,15 +17,13 @@ enum GameControls {
 }
 
 export class SnakeGame {
-    private readonly backgroundColor = [0, 0, 0];
-    private readonly height = 400;
-    private readonly width = 400;
-    private readonly pixelWidth = 12;
-    private readonly pixelHeight = 12;
-    private speed = 100;
+    private readonly height = GameOptions.height || 400;
+    private readonly width = GameOptions.width || 400;
+    private readonly pixelWidth = GameOptions.pixelWidth || 12;
+    private readonly pixelHeight = GameOptions.pixelHeight || 12;
+    private speed = GameOptions.speed || 100;
     private time = 0;
     private now = performance.now();
-    private lastDelta = 0;
     private border = false;
     private renderer: Renderer;
     private input = new Input();
@@ -39,12 +37,29 @@ export class SnakeGame {
 
     private showFps = true;
 
+    //Game options
+    private colliders = GameOptions.colliders;
+    private snakeAnimation = GameOptions.snakeAnimation;
+
     constructor() {
+        // options
+        if (GameOptions.verbose) {
+            if (!this.colliders) console.info('Colliders disabled');
+            if (!GameOptions.feedbackAnimation) console.info('Feedback animation disabled');
+            if (!GameOptions.snakeAnimation) console.info('Snake animation disabled');
+        }
+
+        // options
+
         this.renderer = new Renderer(this.height, this.width);
 
         this.renderer.loadShader('vertex', vertexShader, this.gl.VERTEX_SHADER, false);
         this.renderer.loadShader('fragment', fragmentShader, this.gl.FRAGMENT_SHADER);
         this.gameDom = new GameDom(this.renderer, this.height, this.width);
+        if (this.speed !== 100) {
+            this.gameDom.speed = this.speed;
+        }
+
 
         this.restartGame();
 
@@ -77,13 +92,15 @@ export class SnakeGame {
         this.gl.enableVertexAttribArray(colorAttributeLocation);
 
         this.gl.useProgram(this.program);
-        console.log(`Drawn using ${this.renderer.technology}`);
+        if (GameOptions.verbose) {
+            console.log(`Drawing with ${this.renderer.technology}`);
+        }
     }
 
     restartGame() {
         this.snake = [];
         this.addSnake(random(1, this.pixelHeight - 2), random(1, this.pixelWidth - 2));
-        this.spawnRadomFood();
+        this.spawnRandomFood();
         this.paused = false;
 
     }
@@ -96,6 +113,9 @@ export class SnakeGame {
     }
 
     private control = (control: Controls) => {
+        if (control === Controls.Confirm && this.paused) {
+            return this.restartGame();
+        }
         if (this.paused) return;
         const behind = (yOffset = 0, xOffset = 0): boolean => {
             const head = this.snake[0];
@@ -121,9 +141,8 @@ export class SnakeGame {
             this.direction = GameControls.Right;
             if (!this.paused) {}
             this.gameDom.bounce('left', false);
-        } else if (control === Controls.Confirm && this.paused) {
-            this.restartGame();
         }
+
     }
 
     updateSnakePos() {
@@ -136,7 +155,7 @@ export class SnakeGame {
             const tail = this.snake[this.snake.length - 1];
             this.addSnake(tail.pos.y, tail.pos.x);
             this.food = undefined;
-            this.spawnRadomFood();
+            this.spawnRandomFood();
         }
 
         if (this.direction === GameControls.Up) {
@@ -172,19 +191,15 @@ export class SnakeGame {
             onGridX = onGridXBackup;
             onGridY = onGridYBackup;
         }
-
     }
 
     draw = () => {
         const now = performance.now();
         const delta = now - this.now;
-        this.lastDelta = delta;
         this.now = now;
 
         if (delta <= 0) return requestAnimationFrame(this.draw);
         if (this.paused) return requestAnimationFrame(this.draw);
-        // 240 9
-        // 60 17
 
         this.time += delta;
         if (this.showFps) {
@@ -212,7 +227,7 @@ export class SnakeGame {
         }
 
         for (let i = 0; i < this.snake.length; i++) {
-            this.snake[i].move(delta);
+            if (this.snakeAnimation) this.snake[i].move(delta);
 
             if (i === 0) {
                 this.snake[i].size = 1;
@@ -228,7 +243,7 @@ export class SnakeGame {
             });
             count += this.snake[i].shapes;
         }
-        if (this.isColliding()) {
+        if (this.colliders && this.isColliding()) {
             this.paused = true;
             return requestAnimationFrame(this.draw);
         }
@@ -237,7 +252,6 @@ export class SnakeGame {
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(triangleVertices), this.gl.STATIC_DRAW);
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6 * count);
-
 
         requestAnimationFrame(this.draw);
     }
@@ -250,13 +264,11 @@ export class SnakeGame {
             if (head.onGridX === this.snake[i].onGridX && head.onGridY === this.snake[i].onGridY) {
                 return true;
             }
-
         }
-
         return false;
     }
 
-    spawnRadomFood() {
+    spawnRandomFood() {
         if (!this.food) {
             const result = Food.randomPos(this.pixelHeight, this.pixelWidth, this.snake);
             if (!result) {

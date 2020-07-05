@@ -28,7 +28,7 @@ export class Input {
     }
 
     on(listener: (control: Controls) => void) {
-        this.eventEmitter.on('keypress', listener)
+        this.eventEmitter.on('keypress', listener);
     }
 
     private touchStart = (ev: TouchEvent) => {
@@ -86,7 +86,6 @@ export class Input {
                 break;
         }
     }
- 
 
     destroy() {
         this.eventEmitter.removeAllListeners();

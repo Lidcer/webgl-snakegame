@@ -1,22 +1,28 @@
 import { Renderer } from './Renderer';
-import { Snake } from './object/Snake';
+import { Snake } from './objects/Snake';
 import { Socket } from 'dgram';
+import { GameOptions } from './GameOptions';
 
 export class GameDom {
 
     private readonly backgroundColor = [32, 32, 32];
     private readonly grayColor = [0, 0, 0];
+    private readonly mainGamePadding = 5;
+    private readonly borderThickness = 2;
 
     private readonly mainGameClass = 'the-snake-game';
     private readonly scoreClass = 'the-snake-score';
     private readonly borderClass = 'the-snake-border';
-    private readonly canvasClass = 'the-snake-canvas-';
+    private readonly canvasClass = 'the-snake-canvas';
+    private readonly feedbackAnimation = GameOptions.feedbackAnimation;
 
     private div = document.createElement('div');
     private scoreDiv = document.createElement('div');
     private fpsDiv = document.createElement('div');
+    private speedDiv = document.createElement('div');
     private border = document.createElement('div');
     private style = document.createElement('style');
+
 
     constructor(private renderer: Renderer, private _height, private _width) {
         this.createCss();
@@ -24,21 +30,41 @@ export class GameDom {
         this.border.classList.add(this.borderClass);
         this.scoreDiv.classList.add(this.scoreClass);
         this.fpsDiv.classList.add(this.scoreClass);
+        this.speedDiv.classList.add(this.scoreClass);
         this.renderer.canvas.classList.add(this.canvasClass);
 
         this.score = 0;
-        this.border.style.border = `2px solid white`;
+        this.border.style.border = `${this.borderThickness}px solid white`;
         this.border.style.width = `${this.renderer.width}px`;
         this.border.style.height = `${this.renderer.height}px`;
 
         this.div.append(this.scoreDiv);
-        this.div.append(this.fpsDiv);
+        this.div.append(this.speedDiv);
+        if (GameOptions.showFps) {
+            this.div.append(this.fpsDiv);
+        }
         window.addEventListener('resize', this.resize);
 
         this.div.append(this.border);
         this.border.append(this.renderer.canvas);
         document.body.append(this.div);
-        this.resize();
+
+
+        const time = 1.5;
+        if (this.feedbackAnimation) {
+            this.div.style.transition = `top ${time}s ease 0s, left ${time}s ease 0s`,
+            this.div.style.top = `-${this.height * 2}px`;
+        }
+
+        this.resize(this.feedbackAnimation ? 15 : undefined);
+
+        if (this.feedbackAnimation) {
+            setTimeout(() => {
+                this.div.style.transition = '';
+                this.resize();
+            }, time * 1000);
+        }
+
     }
 
     private createCss() {
@@ -49,7 +75,7 @@ export class GameDom {
           `.${this.mainGameClass} {`,
           `   position: fixed;`,
           `   z-index: 999999999999;`,
-          `   padding: 5px;`,
+          `   padding: ${this.mainGamePadding}px;`,
           `   transition: top ${transitionTime}s ease 0s, left ${transitionTime}s ease 0s;`,
           `   background-color: rgb(${this.backgroundColor[0]}, ${this.backgroundColor[1]}, ${this.backgroundColor[2]});`,
           `}`,
@@ -81,10 +107,15 @@ export class GameDom {
     }
 
     set fps(fps: number) {
+        if (!GameOptions.showFps) return;
         this.fpsDiv.textContent = `Fps: ${fps}`;
+    }
+    set speed(speed: number) {
+        this.speedDiv.textContent = `Speed: ${speed}`;
     }
 
     bounce(direction: 'top' | 'left', minus = false) {
+        if (!this.feedbackAnimation) return;
         const boundingClientRect = this.div.getBoundingClientRect();
         const distance = 5;
         const time = 50;
@@ -129,8 +160,48 @@ export class GameDom {
     get width() {
         return this._width;
     }
-    private resize = () => {
-        this.div.style.top = `${window.innerHeight * 0.5 - this.height * 0.5}px`;
-        this.div.style.left = `${window.innerWidth * 0.5 - this.width * 0.5}px`;
+    private resize = (e?: UIEvent | number) => {
+        const yOffset = typeof e === 'number' ? e : 0;
+        const margin = 10;
+        const score = this.scoreDiv.getBoundingClientRect();
+        const padding = (this.mainGamePadding * 2) + (this.borderThickness * 2);
+        const width = this.renderer.width + padding + (margin * 2);
+        const height = this.renderer.height + padding + (margin * 2) + score.height;
+        const ratio = height / width;
+
+        if (window.innerWidth < width) {
+            this.div.style.left = `${margin}px`;
+            const divWidth = window.innerWidth - margin - padding - this.mainGamePadding;
+            this.div.style.width = `${divWidth}px`;
+            const canvasWidth = window.innerWidth - padding - margin - this.mainGamePadding * 2;
+            this.border.style.width = `${canvasWidth}px`;
+            this.renderer.canvas.style.width = `${canvasWidth}px`;
+
+            this.div.style.height = `${(divWidth * ratio + score.height * 1.5) + yOffset}px`;
+            this.border.style.height = `${canvasWidth * ratio}px`;
+            this.renderer.canvas.style.height = `${canvasWidth * ratio }px`;
+        } else if (window.innerHeight < height) {
+            this.div.style.top = `${margin + yOffset}px`;
+            const divHeight = window.innerHeight - margin - padding - this.mainGamePadding;
+            this.div.style.height = `${divHeight}px`;
+            const canvasHeight = window.innerHeight - padding - margin - this.mainGamePadding * 2 - (score.height * 1.5);
+            this.border.style.height = `${canvasHeight}px`;
+            this.renderer.canvas.style.height = `${canvasHeight}px`;
+
+            this.div.style.width = `${(divHeight - (score.height * 1.5)) * ratio}px`;
+            this.border.style.width = `${canvasHeight * ratio}px`;
+            this.renderer.canvas.style.width = `${canvasHeight * ratio }px`;
+        } else {
+            this.div.style.height = '';
+            this.div.style.width = '';
+            this.renderer.canvas.style.height = '';
+            this.renderer.canvas.style.width = '';
+            this.border.style.width = `${this.renderer.width}px`;
+            this.border.style.height = `${this.renderer.height}px`;
+
+            this.div.style.top = `${window.innerHeight * 0.5 - height * 0.5 + margin + yOffset}px`;
+            this.div.style.left = `${window.innerWidth * 0.5 - width * 0.5 + margin}px`;
+        }
+
     }
 }

@@ -33,7 +33,7 @@ export class Food extends Drawable {
         }
 
         const isColliding = (y: number, x: number) => {
-            return snake.find(s => s.pos.y === y && s.pos.x === x);
+            return snake.find(s => s.onGridY === y && s.onGridX === x);
         };
 
         // TODO get better food checker;

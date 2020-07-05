@@ -7,7 +7,7 @@
     "target": "ES2018"
   },
   "include": [
-    "src/*", "src/content.ts", "src/object/Food.ts", "src/object/Square.ts", "src/object/Snake.ts", "src/object/Drawable.ts"
+    "src/*", "src/content.ts", "src/objects/Food.ts", "src/objects/Square.ts", "src/objects/Snake.ts", "src/objects/Drawable.ts"
   ],
   "exclude": [
     "node_modules",
