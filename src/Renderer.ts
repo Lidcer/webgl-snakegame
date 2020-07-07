@@ -82,7 +82,9 @@ export class Renderer {
             this.gl.shaderSource(shader, textRaw);
             this.gl.compileShader(shader);
             if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-                this.gl.deleteShader(shader);
+                setTimeout(() => {
+                    this.gl.deleteShader(shader);
+                });
                 throw new Error(`Error Compiling a shader ${this.gl.getShaderInfoLog(shader)}`);
             } else {
                 this.compiledShaders.push(shader);

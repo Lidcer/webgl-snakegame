@@ -63,5 +63,9 @@ export class GameOptions  {
         }
         return speedInt;
     }
+
+    static get experimentalShader() {
+        return params.get('experimental-shader') !== null ? false : true;
+    }
 }
 

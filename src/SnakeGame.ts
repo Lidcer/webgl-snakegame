@@ -1,5 +1,5 @@
 import { Renderer } from './Renderer';
-import { vertexShader, fragmentShader } from './generated/shaders';
+import { vertexShader, fragmentShader, vertexShaderTest } from './generated/shaders';
 import { Input, Controls } from './Input';
 import { Snake } from './objects/Snake';
 import { Food } from './objects/Food';
@@ -53,7 +53,11 @@ export class SnakeGame {
 
         this.renderer = new Renderer(this.height, this.width);
 
-        this.renderer.loadShader('vertex', vertexShader, this.gl.VERTEX_SHADER, false);
+        if (GameOptions.experimentalShader) {
+            this.renderer.loadShader('vertex', vertexShaderTest, this.gl.VERTEX_SHADER, false);
+        } else {
+            this.renderer.loadShader('vertex', vertexShader, this.gl.VERTEX_SHADER, false);
+        }
         this.renderer.loadShader('fragment', fragmentShader, this.gl.FRAGMENT_SHADER);
         this.gameDom = new GameDom(this.renderer, this.height, this.width);
         if (this.speed !== 100) {
