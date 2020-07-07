@@ -17,11 +17,12 @@ enum GameControls {
 }
 
 export class SnakeGame {
-    private readonly height = GameOptions.height || 400;
-    private readonly width = GameOptions.width || 400;
+    static readonly DEFAULT_SPEED = 300;
+    private readonly height = GameOptions.height || 500;
+    private readonly width = GameOptions.width || 500;
     private readonly pixelWidth = GameOptions.pixelWidth || 12;
     private readonly pixelHeight = GameOptions.pixelHeight || 12;
-    private speed = GameOptions.speed || 100;
+    private speed = GameOptions.speed || SnakeGame.DEFAULT_SPEED;
     private time = 0;
     private now = performance.now();
     private border = false;
@@ -60,10 +61,9 @@ export class SnakeGame {
         }
         this.renderer.loadShader('fragment', fragmentShader, this.gl.FRAGMENT_SHADER);
         this.gameDom = new GameDom(this.renderer, this.height, this.width);
-        if (this.speed !== 100) {
+        if (this.speed !== SnakeGame.DEFAULT_SPEED) {
             this.gameDom.speed = this.speed;
         }
-
 
         this.restartGame();
 
@@ -104,6 +104,7 @@ export class SnakeGame {
     restartGame() {
         this.snake = [];
         this.addSnake(random(1, this.pixelHeight - 2), random(1, this.pixelWidth - 2));
+        //this.addSnake(this.pixelHeight - 5, this.pixelWidth - 1);
         this.spawnRandomFood();
         this.paused = false;
 
@@ -129,7 +130,15 @@ export class SnakeGame {
             const hY = clamp(head.onGridY, 0, this.pixelHeight) + yOffset;
             const nX = clamp(neck.onGridX, 0, this.pixelHeight);
             const nY = clamp(neck.onGridY, 0, this.pixelHeight);
-            return !(hX === nX && hY === nY);
+            let horizontalColliding = false;
+            if ((hX === 0 && nX === this.pixelWidth) || (hX === this.pixelWidth && nX === 0) || (hX === 1 && nX === 0) || Math.abs(hX - nX ) > 2 || hX === nX) {
+                horizontalColliding = true;
+            }
+            let verticalColliding = false;
+            if ((hY === 0 && nY === this.pixelHeight) || (hY === this.pixelHeight && nY === 0) || (hY === 1 && nY === 0) || Math.abs(hY - nY) > 2 || hY === nY) {
+                verticalColliding = true;
+            }
+            return !(horizontalColliding && verticalColliding);
         };
 
         if (control === Controls.Up && this.direction !== GameControls.Up && behind(-1, 0)) {
@@ -143,7 +152,6 @@ export class SnakeGame {
             this.gameDom.bounce('left', true);
         } else if (control === Controls.Right && this.direction !== GameControls.Right && behind(0, 1)) {
             this.direction = GameControls.Right;
-            if (!this.paused) {}
             this.gameDom.bounce('left', false);
         }
 
@@ -155,7 +163,7 @@ export class SnakeGame {
         let onGridY = head.onGridY;
 
         if (!this.food) return;
-        if (head.pos.x === this.food.pos.x && head.pos.y === this.food.pos.y) {
+        if (head.onGridX === this.food.onGridX && head.onGridY === this.food.onGridY) {
             const tail = this.snake[this.snake.length - 1];
             this.addSnake(tail.pos.y, tail.pos.x);
             this.food = undefined;
@@ -176,14 +184,14 @@ export class SnakeGame {
         for (let i = 1; i < this.snake.length; i++) {
             const onGridXBackup = this.snake[i].onGridX;
             const onGridYBackup = this.snake[i].onGridY;
-
-            if (!this.border && this.pixelWidth - 1 === this.snake[i].onGridX - onGridX) {
+            if (!this.border && (this.pixelWidth - 1) === this.snake[i].onGridX - onGridX) {
                 this.snake[i]._onGridX = this.pixelWidth;
             } else if (!this.border && this.pixelWidth - 1 === onGridX - this.snake[i].onGridX) {
                 this.snake[i]._onGridX = -1;
             } else {
                 this.snake[i].onGridX = onGridX;
             }
+
             if (!this.border && this.pixelHeight - 1 === this.snake[i].onGridY - onGridY) {
                 this.snake[i]._onGridY = this.pixelHeight;
             } else if (!this.border && this.pixelHeight - 1 === onGridY - this.snake[i].onGridY) {
@@ -229,9 +237,8 @@ export class SnakeGame {
             });
             count += this.food.shapes;
         }
-
         for (let i = 0; i < this.snake.length; i++) {
-            if (this.snakeAnimation) this.snake[i].move(delta);
+            if (this.snakeAnimation) this.snake[i].move(this.time / this.speed);
 
             if (i === 0) {
                 this.snake[i].size = 1;

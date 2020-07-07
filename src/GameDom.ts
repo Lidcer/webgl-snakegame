@@ -11,7 +11,7 @@ export class GameDom {
     private readonly borderThickness = 2;
 
     private readonly mainGameClass = 'the-snake-game';
-    private readonly scoreClass = 'the-snake-score';
+    private readonly textClass = 'the-snake-text';
     private readonly borderClass = 'the-snake-border';
     private readonly canvasClass = 'the-snake-canvas';
     private readonly feedbackAnimation = GameOptions.feedbackAnimation;
@@ -28,9 +28,9 @@ export class GameDom {
         this.createCss();
         this.div.classList.add(this.mainGameClass);
         this.border.classList.add(this.borderClass);
-        this.scoreDiv.classList.add(this.scoreClass);
-        this.fpsDiv.classList.add(this.scoreClass);
-        this.speedDiv.classList.add(this.scoreClass);
+        this.scoreDiv.classList.add(this.textClass);
+        this.fpsDiv.classList.add(this.textClass);
+        this.speedDiv.classList.add(this.textClass);
         this.renderer.canvas.classList.add(this.canvasClass);
 
         this.score = 0;
@@ -57,7 +57,6 @@ export class GameDom {
         }
 
         this.resize(this.feedbackAnimation ? 15 : undefined);
-
         if (this.feedbackAnimation) {
             setTimeout(() => {
                 this.div.style.transition = '';
@@ -80,7 +79,7 @@ export class GameDom {
           `   background-color: rgb(${this.backgroundColor[0]}, ${this.backgroundColor[1]}, ${this.backgroundColor[2]});`,
           `}`,
 
-          `.${this.scoreClass} {`,
+          `.${this.textClass} {`,
           `   display: inline-block;`,
           `   margin: 5px;`,
           `   color: rgb(${s[0]}, ${s[1]}, ${s[2]});`,
@@ -95,7 +94,7 @@ export class GameDom {
 
           `.${this.canvasClass} {`,
           `   position: absolute;`,
-          `   transition: margin-top ${transitionTime}s ease 0s, margin-left ${transitionTime}s ease 0s`,
+          `   transition: margin-top ${transitionTime}s ease 0s, margin-left ${transitionTime}s ease 0s;`,
           `}`,
         ].join('\n');
         this.style.textContent = styleText;
@@ -170,6 +169,7 @@ export class GameDom {
         const ratio = height / width;
 
         if (window.innerWidth < width) {
+            this.div.style.top = `${window.innerHeight * 0.5 - height * 0.5 + margin + yOffset}px`;
             this.div.style.left = `${margin}px`;
             const divWidth = window.innerWidth - margin - padding - this.mainGamePadding;
             this.div.style.width = `${divWidth}px`;
@@ -181,6 +181,7 @@ export class GameDom {
             this.border.style.height = `${canvasWidth * ratio}px`;
             this.renderer.canvas.style.height = `${canvasWidth * ratio }px`;
         } else if (window.innerHeight < height) {
+            this.div.style.left = `${window.innerWidth * 0.5 - width * 0.5 + margin}px`;
             this.div.style.top = `${margin + yOffset}px`;
             const divHeight = window.innerHeight - margin - padding - this.mainGamePadding;
             this.div.style.height = `${divHeight}px`;

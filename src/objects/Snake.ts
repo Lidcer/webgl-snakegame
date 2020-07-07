@@ -6,11 +6,11 @@ import { WindowInfo } from './Interfaces';
 export class Snake extends Square {
     public static readonly snakeColour = [32, 247, 90];
 
-    private speed = 0;
     private canGoThroughEdge = true;
-    private square: Square;
+    private squares: Square[] = [];
      _onGridX: number | undefined;
      _onGridY: number | undefined;
+    private percentage = 0;
     private snakeSize = 0.5;
     private precision = 1; // lower it is better it is at least it
 
@@ -21,7 +21,6 @@ export class Snake extends Square {
         this.blue = Snake.snakeColour[2];
         this.setSnakeSize(windowInfo);
 
-        this.setSnakeTime(gameSpeed);
         this.onGridX = x;
         this.onGridY = y;
         this.y = this.sPosY;
@@ -41,64 +40,34 @@ export class Snake extends Square {
             this._onGridY = clamp(++this._onGridY, -1, this.windowInfo.pixelHeight);
         }
     }
-    move(delta: number) {
+    move(percentage: number) {
+        const ap = percentage - this.percentage;
+        this.percentage = percentage;
         if (this.sPosX > this.x) {
-            this.x += delta * this.speed;
+            this.x += this.pixelSizeWidth * ap;
             if (this.sPosX < this.x) this.x = this.sPosX;
         } else if (this.sPosX < this.x) {
-            this.x -= delta * this.speed;
+            this.x -= this.pixelSizeWidth * ap;
             if (this.sPosX > this.x) this.x = this.sPosX;
         }
 
         if (this.sPosY > this.y) {
-            this.y += delta * this.speed;
+            this.y += this.pixelSizeHeight * ap;
             if (this.sPosY < this.y) this.y = this.sPosY;
         } else if (this.sPosY < this.y) {
-            this.y -= delta * this.speed;
+            this.y -= this.pixelSizeHeight * ap;
             if (this.sPosY > this.y) this.y = this.sPosY;
         }
+
         this.borderSquare();
         this.snapOnGrid();
     }
     correctPos() {
+        this.percentage = 0;
         this.y = this.sPosY;
         this.x = this.sPosX;
         this.borderSquare();
         this.snapOnGrid();
-    }
-
-    setSnakeTime(gameTime: number) {
-        //    this.speed = gameTime / 500 * 0.4;
-        if (gameTime < 2) {
-            this.speed = 0;
-        } else if (gameTime >= 5 && gameTime < 10) {
-            this.speed = 0.4;
-        } else if (gameTime >= 10 && gameTime < 20) {
-            this.speed = 0.3;
-        } else if (gameTime >= 30 && gameTime < 30) {
-            this.speed = 0.28;
-        } else if (gameTime >= 40 && gameTime < 50) {
-            this.speed = 0.29;
-        } else if (gameTime >= 50 && gameTime < 60) {
-            this.speed = 0.3;
-        } else if (gameTime >= 60 && gameTime < 100) {
-            this.speed = 0.31;
-        } else if (gameTime >= 100 && gameTime < 200) {
-            this.speed = 0.31;
-        } else if (gameTime >= 200 && gameTime < 300) {
-            this.speed = 0.31;
-        } else if (gameTime >= 300 && gameTime < 400) {
-            this.speed = 0.31;
-        } else if (gameTime >= 400 && gameTime < 500) {
-            this.speed = 0.21;
-        } else if (gameTime >= 500 && gameTime < 1000) {
-            this.speed = 0.20;
-        } else if (gameTime >= 1000 && gameTime < 2000) {
-            this.speed = 0.17;
-        } else {
-            this.speed = 0.2;
-        }
-        //console.log(`Game speed: ${gameTime}, Snake speed: ${this.speed}`);
     }
 
     set size(percentage: number) {
@@ -125,7 +94,7 @@ export class Snake extends Square {
         return 2;
     }
     get shapes() {
-        return this.square ? 2 : 1;
+        return this.squares ? this.squares.length + 1 : 1;
     }
     get pos() {
         const x = clamp(this._onGridX, 1, this.windowInfo.pixelWidth + 1);
@@ -134,8 +103,12 @@ export class Snake extends Square {
     }
 
     get vertices() {
-        if (this.square) {
-            return [...super.vertices, ...this.square.vertices];
+        if (this.squares.length) {
+            const vertices: number[] = [];
+            for (const square of this.squares) {
+                square.vertices.forEach(v => vertices.push(v));
+            }
+            return [...super.vertices, ...vertices];
         }
         return super.vertices;
     }
@@ -147,10 +120,16 @@ export class Snake extends Square {
     }
 
     private borderSquare() {
-        if (this.y > 0 && this.y < (this.windowInfo.height - (this.pixelSizeHeight * this.snakeSize)) &&
-            this.x > 0 && this.x < (this.windowInfo.width - (this.pixelSizeWidth * this.snakeSize))) {
-            if (this.square) {
-                this.square = undefined;
+        const sizeWidth = (this.pixelSizeWidth * this.snakeSize) * 0.5;
+        const sizeHeight = (this.pixelSizeHeight * this.snakeSize) * 0.5;
+        const a = this.y - sizeHeight > 0;
+        const b = this.y + sizeHeight < (this.windowInfo.height - this.pixelSizeHeight * this.snakeSize) ;
+        const c = this.x - sizeWidth > 0;
+        const d = this.x + sizeWidth < (this.windowInfo.width - this.pixelSizeWidth * this.snakeSize);
+
+        if (a && b && c && d) {
+            if (this.squares.length) {
+                this.squares = [];
             }
             return;
         }
@@ -171,43 +150,34 @@ export class Snake extends Square {
             this.x = this.sPosX;
         }
 
-        if (!this.square) {
-            this.square = new Square(this.renderer);
-            this.square.red = Snake.snakeColour[0];
-            this.square.green = Snake.snakeColour[1];
-            this.square.blue = Snake.snakeColour[2];
+        if (!this.squares.length) {
+            this.squares = [];
+            for (let i = 0; i < 4; i++) {
+                const square = new Square(this.renderer);
+                square.red = Snake.snakeColour[0];
+                square.green = Snake.snakeColour[1];
+                square.blue = Snake.snakeColour[2];
+                this.squares.push(square);
+            }
         }
 
-        if (this.y < 0) {
-            this.square.y = this.y + this.windowInfo.height;
-
-        } else if (this.y > (this.windowInfo.height - this.pixelSizeHeight)) {
-            this.square.y = this.y - this.windowInfo.height;
-        } else {
-            this.square.y = this.y;
+        for (let i = 0; i < this.squares.length; i++) {
+            if (i === 0) {
+                this.squares[i].x = this.x - this.windowInfo.width;
+                this.squares[i].y = this.y;
+            } else if (i === 1) {
+                this.squares[i].x = this.x + this.windowInfo.width;
+                this.squares[i].y = this.y;
+            } else if (i === 2) {
+                this.squares[i].y = this.y + this.windowInfo.height;
+                this.squares[i].x = this.x;
+            } else if (i === 3) {
+                this.squares[i].y = this.y - this.windowInfo.height;
+                this.squares[i].x = this.x;
+            }
+            this.squares[i].widthSize = (this.windowInfo.width / this.windowInfo.pixelWidth) * this.snakeSize;
+            this.squares[i].heightSize = (this.windowInfo.height / this.windowInfo.pixelHeight) * this.snakeSize;
         }
-
-        if (this.x < 0) {
-            this.square.x = this.x + this.windowInfo.width;
-
-        } else if (this.x > (this.windowInfo.width - this.pixelSizeWidth)) {
-            this.square.x = this.x - this.windowInfo.width;
-        } else {
-            this.square.x = this.x;
-        }
-
-        // const widthPrecision = this.pixelSizeWidth * 0.9;
-        // console.log(this.posX, this.windowInfo.pixelWidth + widthPrecision)
-        // if (this.onGridX > this.windowInfo.pixelWidth + widthPrecision) {
-        //     this._onGridX = 0;
-        //     console.log(1)
-        // }
-        //     // } else if (this.onGridX < 0) {
-        // //     this.onGridX = this.windowInfo.pixelWidth - 1;
-        // // }
-
-        this.square.widthSize = (this.windowInfo.width / this.windowInfo.pixelWidth) * this.snakeSize;
-        this.square.heightSize = (this.windowInfo.height / this.windowInfo.pixelHeight) * this.snakeSize;
     }
 
     private get sPosX() {

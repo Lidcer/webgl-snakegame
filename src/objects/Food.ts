@@ -1,7 +1,7 @@
 import { Drawable } from './Drawable';
 import { Renderer } from '../Renderer';
-import { WindowInfo } from './Interfaces';
-import { clamp, random } from '../Utils';
+import { WindowInfo, Point } from './Interfaces';
+import { clamp, random, sample } from '../Utils';
 import { Snake } from './Snake';
 
 // drawing low poly circle
@@ -11,7 +11,6 @@ export class Food extends Drawable {
     private _onGridY = 0;
     private _onGridX = 0;
     private foodSize = 0.5;
-
     constructor(renderer: Renderer, private windowInfo: WindowInfo, y: number, x: number) {
         super(renderer);
         this.red = this.foodColour[0];
@@ -25,24 +24,21 @@ export class Food extends Drawable {
         (window as any).food = this;
     }
     static randomPos(pixelHeight: number, pixelWidth: number, snake: Snake[]) {
-        let x = random(0, pixelWidth);
-        let y = random(0, pixelHeight);
-
         if ((pixelHeight * pixelWidth) < snake.length - 1) {
             return null;
         }
-
+        const availableSlots: Point[] = [];
         const isColliding = (y: number, x: number) => {
             return snake.find(s => s.onGridY === y && s.onGridX === x);
         };
-
-        // TODO get better food checker;
-        while (isColliding(y, x)) {
-            x = random(0, pixelWidth);
-            y = random(0, pixelHeight);
+        for (let y = 0; y < pixelHeight; y++) {
+            for (let x = 0; x < pixelHeight; x++) {
+                if (!isColliding(y, x)) {
+                    availableSlots.push({x, y});
+                }
+            }
         }
-
-        return {x, y};
+       return sample(availableSlots);
     }
 
     private setFoodSize (windowInfo?: WindowInfo) {
