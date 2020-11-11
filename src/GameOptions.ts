@@ -67,5 +67,8 @@ export class GameOptions  {
     static get experimentalShader() {
         return params.get('experimental-shader') === null ? false : true;
     }
+    static get showTextInGame() {
+        return params.get('show-text-in-game') === null ? false : true;
+    }
 }
 

@@ -11,7 +11,7 @@ export class Food extends Drawable {
     private _onGridY = 0;
     private _onGridX = 0;
     private foodSize = 0.5;
-    private _data?: number[] | [];
+    private _data?: number[] = [];
 
     constructor(renderer: Renderer, private windowInfo: WindowInfo, y: number, x: number) {
         super(renderer);

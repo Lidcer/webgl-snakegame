@@ -1,6 +1,12 @@
 import { clamp } from '../Utils';
 import { Renderer } from '../Renderer';
 
+export interface RGB {
+    r: number;
+    g: number;
+    b: number;
+}
+
 export abstract class Drawable {
 
     private readonly maxColourRage = 255;
@@ -70,5 +76,19 @@ export abstract class Drawable {
     set green(green: number) {
         green = clamp(green, 0, this.maxColourRage);
         this.g = green / this.maxColourRage;
+    }
+
+    set drawColour(rgb: RGB) {
+        this.blue = rgb.b;
+        this.red = rgb.r;
+        this.green = rgb.g;
+    }
+
+    get drawColour(): RGB {
+        return {
+            b: this.blue,
+            r: this.red,
+            g: this.green,
+        };
     }
 }

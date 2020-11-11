@@ -7,6 +7,7 @@ import { WindowInfo } from './objects/Interfaces';
 import { random, clamp } from './Utils';
 import { GameDom } from './GameDom';
 import { GameOptions } from './GameOptions';
+import { TextRenderer } from './Font/Text';
 
 enum GameControls {
     Up,
@@ -30,7 +31,8 @@ export class SnakeGame {
     private renderer: Renderer;
     private input = new Input();
     private food: Food;
-    private aData = [1];
+    //private aData = [1];
+    private score: TextRenderer;
 
     private direction = GameControls.None;
 
@@ -76,10 +78,14 @@ export class SnakeGame {
 
         this.renderer.attribArray('vertPosition', 2, this.gl.FLOAT);
         this.renderer.attribArray('vertColor', 3, this.gl.FLOAT);
-        this.renderer.attribArray('delta', 1, this.gl.FLOAT);
+     //   this.renderer.attribArray('delta', 1, this.gl.FLOAT);
         this.renderer.initAttribArrays();
 
         this.gl.useProgram(this.program);
+        if (GameOptions.showTextInGame) {
+            this.score = new TextRenderer(this.renderer, 'The snake game', {y: 2, x: 2, color: Snake.snakeColour, fontSize: 5});
+        }
+
         if (GameOptions.verbose) {
             console.log(`Drawing with ${this.renderer.technology}`);
         }
@@ -96,9 +102,10 @@ export class SnakeGame {
 
     addSnake(y: number, x: number) {
         this.food = undefined;
-        const snake = new Snake(this.renderer, this.windowInfo, {x, y, gameSpeed: this.speed, data: this.aData});
+        const snake = new Snake(this.renderer, this.windowInfo, {x, y, gameSpeed: this.speed, /*data: this.aData*/});
         this.snake.push(snake);
         this.gameDom.score = this.snake.length;
+        this.score = new TextRenderer(this.renderer, `${this.snake.length}`, {y: 2, x: 2, color: Snake.snakeColour, fontSize: 5});
     }
 
     private control = (control: Controls) => {
@@ -124,7 +131,7 @@ export class SnakeGame {
             }
             return !(horizontalColliding && verticalColliding);
         };
-
+        const directionNow = this.direction;
         if (control === Controls.Up && this.direction !== GameControls.Up && behind(-1, 0)) {
             this.direction = GameControls.Up;
             this.gameDom.bounce('top', true);
@@ -138,7 +145,9 @@ export class SnakeGame {
             this.direction = GameControls.Right;
             this.gameDom.bounce('left', false);
         }
-
+        if (directionNow === GameControls.None && directionNow !== this.direction) {
+            this.score = new TextRenderer(this.renderer, `${this.snake.length}`, {y: 2, x: 2, color: Snake.snakeColour, fontSize: 5});
+        }
     }
 
     updateSnakePos() {
@@ -216,7 +225,7 @@ export class SnakeGame {
         let count = 0;
 
         if (this.food) {
-            this.food.data = this.aData;
+            //this.food.data = this.aData;
             this.food.vertices.forEach(vertex => {
                 triangleVertices.push(vertex);
             });
@@ -224,7 +233,7 @@ export class SnakeGame {
         }
         for (let i = 0; i < this.snake.length; i++) {
             if (this.snakeAnimation) this.snake[i].move(this.time / this.speed);
-            this.snake[i].data = this.aData;
+            //this.snake[i].data = this.aData;
             if (i === 0) {
                 this.snake[i].size = 1;
             } else {
@@ -239,6 +248,13 @@ export class SnakeGame {
             });
             count += this.snake[i].shapes;
         }
+        if (this.score) {
+            this.score.vertices.forEach(e => {
+                triangleVertices.push(e);
+            });
+            count += this.score.shapes;
+        }
+
         if (this.colliders && this.isColliding()) {
             this.paused = true;
             return requestAnimationFrame(this.draw);
@@ -248,7 +264,7 @@ export class SnakeGame {
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(triangleVertices), this.gl.STATIC_DRAW);
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6 * count);
-        this.aData[0] = 1;
+        //this.aData[0] = 1;
         requestAnimationFrame(this.draw);
     }
 
@@ -272,7 +288,7 @@ export class SnakeGame {
                 this.paused = true;
             } else {
                 this.food = new Food(this.renderer, this.windowInfo, result.y, result.x);
-                this.food.data = this.aData;
+                //this.food.data = this.aData;
             }
         }
     }

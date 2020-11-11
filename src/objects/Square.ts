@@ -1,13 +1,24 @@
 import { Renderer } from '../Renderer';
-import { Drawable } from './Drawable';
+import { Drawable, RGB } from './Drawable';
+
+export interface SquareOptions {
+    data?: number[];
+    colour?: RGB;
+    x?: number;
+    y?: number;
+}
 
 export class Square extends Drawable {
-    time = 0;
-    constructor(renderer: Renderer, size = 10, private _data?: number[]) {
+    private _data: number[] = [];
+    constructor(renderer: Renderer, size = 10, options: SquareOptions = {} ) {
         super(renderer);
-        this.x = 0;
-        this.y = 0;
+        this.x = options.x || 0;
+        this.y = options.y || 0;
+        this.data = options.data || [];
         this.size = size;
+        if (options.colour) {
+            this.drawColour = options.colour;
+        }
     }
 
     get vertices() {
@@ -37,7 +48,7 @@ export class Square extends Drawable {
         ];
     }
 
-    set data(data: number[] | undefined) {
+    set data(data: number[]) {
         this._data = data;
     }
     get data() {

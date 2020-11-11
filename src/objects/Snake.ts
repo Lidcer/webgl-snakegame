@@ -2,6 +2,7 @@ import { Square } from './Square';
 import { Renderer } from '../Renderer';
 import { clamp } from '../Utils';
 import { WindowInfo } from './Interfaces';
+import { RGB } from './Drawable';
 
 interface SnakeOptions {
     gameSpeed: number;
@@ -9,11 +10,6 @@ interface SnakeOptions {
     y?: number;
     data?: number[];
     colour?: RGB;
-}
-interface RGB {
-    r: number;
-    g: number;
-    b: number;
 }
 
 export class Snake extends Square {
@@ -173,7 +169,7 @@ export class Snake extends Square {
         if (!this.squares.length) {
             this.squares = [];
             for (let i = 0; i < 4; i++) {
-                const square = new Square(this.renderer, undefined, this.data);
+                const square = new Square(this.renderer, undefined, { data: this.data });
                 square.red = this.setColour.r;
                 square.green = this.setColour.g;
                 square.blue = this.setColour.b;
