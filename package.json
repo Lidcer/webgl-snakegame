@@ -7,7 +7,7 @@
     "build": "node ./scripts/generateShaders.js && webpack",
     "build:w": "webpack --watch --progress",
     "build:shader:watch": "node ./scripts/generateShaders.js -w",
-    "webpack-dev:watch": "webpack webpack -w"
+    "webpack-dev:watch": "webpack -w"
   },
   "repository": {
     "type": "git",
@@ -24,6 +24,7 @@
     "ts-loader": "^7.0.5",
     "typescript": "^3.9.6",
     "webpack": "^4.41.6",
-    "webpack-cli": "^3.3.11"
+    "webpack-cli": "^3.3.11",
+    "tslint": "^6.1.3"
   }
 }

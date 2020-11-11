@@ -65,7 +65,7 @@ export class GameOptions  {
     }
 
     static get experimentalShader() {
-        return params.get('experimental-shader') !== null ? false : true;
+        return params.get('experimental-shader') === null ? false : true;
     }
 }
 

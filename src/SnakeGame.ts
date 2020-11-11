@@ -24,11 +24,13 @@ export class SnakeGame {
     private readonly pixelHeight = GameOptions.pixelHeight || 12;
     private speed = GameOptions.speed || SnakeGame.DEFAULT_SPEED;
     private time = 0;
+    private lifeTime = 0;
     private now = performance.now();
     private border = false;
     private renderer: Renderer;
     private input = new Input();
     private food: Food;
+    private aData = [1];
 
     private direction = GameControls.None;
 
@@ -72,28 +74,10 @@ export class SnakeGame {
         const triangleVertexBufferObject = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, triangleVertexBufferObject);
 
-        const positionAttributeLocation = this.gl.getAttribLocation(this.renderer.program, 'vertPosition');
-        const colorAttributeLocation = this.gl.getAttribLocation(this.renderer.program, 'vertColor');
-        this.gl.vertexAttribPointer(
-            positionAttributeLocation,
-            2,
-            this.gl.FLOAT,
-            false,
-            5 * Float32Array.BYTES_PER_ELEMENT,
-            0
-        );
-
-        this.gl.vertexAttribPointer(
-            colorAttributeLocation,
-            3,
-            this.gl.FLOAT,
-            false,
-            5 * Float32Array.BYTES_PER_ELEMENT,
-            2 * Float32Array.BYTES_PER_ELEMENT
-        );
-
-        this.gl.enableVertexAttribArray(positionAttributeLocation);
-        this.gl.enableVertexAttribArray(colorAttributeLocation);
+        this.renderer.attribArray('vertPosition', 2, this.gl.FLOAT);
+        this.renderer.attribArray('vertColor', 3, this.gl.FLOAT);
+        this.renderer.attribArray('delta', 1, this.gl.FLOAT);
+        this.renderer.initAttribArrays();
 
         this.gl.useProgram(this.program);
         if (GameOptions.verbose) {
@@ -112,7 +96,7 @@ export class SnakeGame {
 
     addSnake(y: number, x: number) {
         this.food = undefined;
-        const snake = new Snake(this.renderer, this.windowInfo, this.speed, x, y);
+        const snake = new Snake(this.renderer, this.windowInfo, {x, y, gameSpeed: this.speed, data: this.aData});
         this.snake.push(snake);
         this.gameDom.score = this.snake.length;
     }
@@ -232,6 +216,7 @@ export class SnakeGame {
         let count = 0;
 
         if (this.food) {
+            this.food.data = this.aData;
             this.food.vertices.forEach(vertex => {
                 triangleVertices.push(vertex);
             });
@@ -239,7 +224,7 @@ export class SnakeGame {
         }
         for (let i = 0; i < this.snake.length; i++) {
             if (this.snakeAnimation) this.snake[i].move(this.time / this.speed);
-
+            this.snake[i].data = this.aData;
             if (i === 0) {
                 this.snake[i].size = 1;
             } else {
@@ -263,7 +248,7 @@ export class SnakeGame {
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(triangleVertices), this.gl.STATIC_DRAW);
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6 * count);
-
+        this.aData[0] = 1;
         requestAnimationFrame(this.draw);
     }
 
@@ -287,6 +272,7 @@ export class SnakeGame {
                 this.paused = true;
             } else {
                 this.food = new Food(this.renderer, this.windowInfo, result.y, result.x);
+                this.food.data = this.aData;
             }
         }
     }

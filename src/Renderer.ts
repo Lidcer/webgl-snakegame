@@ -7,7 +7,11 @@ interface Shader {
     textRaw: string;
     type: number;
 }
-
+interface AttribArraySpec {
+    size: number;
+    type: number;
+    name: string;
+}
 
 export class Renderer {
     private readonly _canvas: HTMLCanvasElement;
@@ -17,6 +21,7 @@ export class Renderer {
     private compiledShaders: WebGLShader[] = [];
     private _webGLProgram: WebGLProgram;
     private _usedTechnology = 'webgl2';
+    private attribArraySpec: AttribArraySpec[] = [];
 
     constructor(height?: number, width?: number) {
         const canvas = document.createElement('canvas');
@@ -58,6 +63,29 @@ export class Renderer {
             delete this.shaders[shaderName];
             this.recompileEverything();
         }
+    }
+
+    attribArray(name: string, size: number, type: number) {
+        this.attribArraySpec.push({name, type, size});
+    }
+    initAttribArrays() {
+        const stride = this.attribArraySpec.map(a => a.size).reduce((a, b) => a + b);
+        let offset = 0;
+        for (const attribArray of this.attribArraySpec) {
+            const { size, name, type } = attribArray;
+            const location = this.gl.getAttribLocation(this.program, name);
+            this.gl.vertexAttribPointer(
+                location,
+                size,
+                type,
+                false,
+                stride * Float32Array.BYTES_PER_ELEMENT,
+                offset * Float32Array.BYTES_PER_ELEMENT,
+            );
+            offset += size;
+            this.gl.enableVertexAttribArray(location);
+        }
+        this.attribArraySpec = [];
     }
 
     destroy() {

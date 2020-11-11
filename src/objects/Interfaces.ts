@@ -5,7 +5,6 @@ export interface WindowInfo {
     pixelWidth: number;
 }
 
-
 export interface Point {
     x: number;
     y: number;

@@ -1,6 +1,5 @@
 import { Renderer } from './Renderer';
 import { Snake } from './objects/Snake';
-import { Socket } from 'dgram';
 import { GameOptions } from './GameOptions';
 
 export class GameDom {
@@ -82,7 +81,7 @@ export class GameDom {
           `.${this.textClass} {`,
           `   display: inline-block;`,
           `   margin: 5px;`,
-          `   color: rgb(${s[0]}, ${s[1]}, ${s[2]});`,
+          `   color: rgb(${s.r}, ${s.g}, ${s.b});`,
           `   font-family: Impact, Charcoal, sans-serif;`,
           `   margin: 0px 0px 5px 10px;`,
           `}`,

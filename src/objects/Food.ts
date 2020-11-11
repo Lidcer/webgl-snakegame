@@ -1,7 +1,7 @@
 import { Drawable } from './Drawable';
 import { Renderer } from '../Renderer';
 import { WindowInfo, Point } from './Interfaces';
-import { clamp, random, sample } from '../Utils';
+import { clamp, sample } from '../Utils';
 import { Snake } from './Snake';
 
 // drawing low poly circle
@@ -11,6 +11,8 @@ export class Food extends Drawable {
     private _onGridY = 0;
     private _onGridX = 0;
     private foodSize = 0.5;
+    private _data?: number[] | [];
+
     constructor(renderer: Renderer, private windowInfo: WindowInfo, y: number, x: number) {
         super(renderer);
         this.red = this.foodColour[0];
@@ -21,7 +23,6 @@ export class Food extends Drawable {
         this.y = this.sPosY;
         this.x = this.sPosX;
         this.setFoodSize(windowInfo);
-        (window as any).food = this;
     }
     static randomPos(pixelHeight: number, pixelWidth: number, snake: Snake[]) {
         if ((pixelHeight * pixelWidth) < snake.length - 1) {
@@ -40,20 +41,17 @@ export class Food extends Drawable {
         }
        return sample(availableSlots);
     }
-
     private setFoodSize (windowInfo?: WindowInfo) {
         windowInfo = windowInfo || this.windowInfo;
         this.widthSize = (windowInfo.width / windowInfo.pixelWidth) * this.foodSize;
         this.heightSize = (windowInfo.height / windowInfo.pixelHeight) * this.foodSize;
     }
-
     set onGridX(num: number) {
         this._onGridX = clamp(num, 0, this.windowInfo.pixelWidth - 1);
     }
     get onGridX() {
         return this._onGridX;
     }
-
     set onGridY(num: number) {
         this._onGridY = clamp(num, 0, this.windowInfo.pixelHeight - 1);
     }
@@ -66,8 +64,6 @@ export class Food extends Drawable {
     private get xOffset () {
         return this.pixelSizeWidth - (this.pixelSizeWidth * this.foodSize);
     }
-
-
     private get sPosX() {
         return this.sPosXRaw + (this.xOffset * 0.5);
     }
@@ -80,7 +76,6 @@ export class Food extends Drawable {
     private get sPosYRaw() {
         return this.pixelSizeHeight * this.onGridY;
     }
-
     private get pixelSizeWidth() {
         return this.windowInfo.width / this.windowInfo.pixelWidth;
     }
@@ -92,7 +87,6 @@ export class Food extends Drawable {
         const y = clamp(this._onGridY, 1, this.windowInfo.pixelHeight + 1);
         return {x, y};
     }
-
     get vertices() {
 
         // round "square" top-left
@@ -163,63 +157,62 @@ export class Food extends Drawable {
         const triangle14_2 = triangle13_2;
         const triangle14_3 = point4;
 
-
         return [
-            ...triangle1_1,  ...this.colour,
-            ...triangle1_2,  ...this.colour,
-            ...triangle1_3,  ...this.colour,
+            ...triangle1_1,  ...this.colour, ...this.data,
+            ...triangle1_2,  ...this.colour, ...this.data,
+            ...triangle1_3,  ...this.colour, ...this.data,
 
-            ...triangle2_1,  ...this.colour,
-            ...triangle2_2,  ...this.colour,
-            ...triangle2_3,  ...this.colour,
+            ...triangle2_1,  ...this.colour, ...this.data,
+            ...triangle2_2,  ...this.colour, ...this.data,
+            ...triangle2_3,  ...this.colour, ...this.data,
 
-            ...triangle3_1, ...this.colour,
-            ...triangle3_2, ...this.colour,
-            ...triangle3_3, ...this.colour,
+            ...triangle3_1, ...this.colour, ...this.data,
+            ...triangle3_2, ...this.colour, ...this.data,
+            ...triangle3_3, ...this.colour, ...this.data,
 
-            ...triangle4_1, ...this.colour,
-            ...triangle4_2, ...this.colour,
-            ...triangle4_3, ...this.colour,
+            ...triangle4_1, ...this.colour, ...this.data,
+            ...triangle4_2, ...this.colour, ...this.data,
+            ...triangle4_3, ...this.colour, ...this.data,
 
-            ...triangle5_1, ...this.colour,
-            ...triangle5_2, ...this.colour,
-            ...triangle5_3, ...this.colour,
+            ...triangle5_1, ...this.colour, ...this.data,
+            ...triangle5_2, ...this.colour, ...this.data,
+            ...triangle5_3, ...this.colour, ...this.data,
 
-            ...triangle6_1, ...this.colour,
-            ...triangle6_2, ...this.colour,
-            ...triangle6_3, ...this.colour,
+            ...triangle6_1, ...this.colour, ...this.data,
+            ...triangle6_2, ...this.colour, ...this.data,
+            ...triangle6_3, ...this.colour, ...this.data,
 
-            ...triangle7_1, ...this.colour,
-            ...triangle7_2, ...this.colour,
-            ...triangle7_3, ...this.colour,
+            ...triangle7_1, ...this.colour, ...this.data,
+            ...triangle7_2, ...this.colour, ...this.data,
+            ...triangle7_3, ...this.colour, ...this.data,
 
-            ...triangle8_1, ...this.colour,
-            ...triangle8_2, ...this.colour,
-            ...triangle8_3, ...this.colour,
+            ...triangle8_1, ...this.colour, ...this.data,
+            ...triangle8_2, ...this.colour, ...this.data,
+            ...triangle8_3, ...this.colour, ...this.data,
 
-            ...triangle9_1, ...this.colour,
-            ...triangle9_2, ...this.colour,
-            ...triangle9_3, ...this.colour,
+            ...triangle9_1, ...this.colour, ...this.data,
+            ...triangle9_2, ...this.colour, ...this.data,
+            ...triangle9_3, ...this.colour, ...this.data,
 
-            ...triangle10_1, ...this.colour,
-            ...triangle10_2, ...this.colour,
-            ...triangle10_3, ...this.colour,
+            ...triangle10_1, ...this.colour, ...this.data,
+            ...triangle10_2, ...this.colour, ...this.data,
+            ...triangle10_3, ...this.colour, ...this.data,
 
-            ...triangle11_1, ...this.colour,
-            ...triangle11_2, ...this.colour,
-            ...triangle11_3, ...this.colour,
+            ...triangle11_1, ...this.colour, ...this.data,
+            ...triangle11_2, ...this.colour, ...this.data,
+            ...triangle11_3, ...this.colour, ...this.data,
 
-            ...triangle12_1, ...this.colour,
-            ...triangle12_2, ...this.colour,
-            ...triangle12_3, ...this.colour,
+            ...triangle12_1, ...this.colour, ...this.data,
+            ...triangle12_2, ...this.colour, ...this.data,
+            ...triangle12_3, ...this.colour, ...this.data,
 
-            ...triangle13_1, ...this.colour,
-            ...triangle13_2, ...this.colour,
-            ...triangle13_3, ...this.colour,
+            ...triangle13_1, ...this.colour, ...this.data,
+            ...triangle13_2, ...this.colour, ...this.data,
+            ...triangle13_3, ...this.colour, ...this.data,
 
-            ...triangle14_1, ...this.colour,
-            ...triangle14_2, ...this.colour,
-            ...triangle14_3, ...this.colour,
+            ...triangle14_1, ...this.colour, ...this.data,
+            ...triangle14_2, ...this.colour, ...this.data,
+            ...triangle14_3, ...this.colour, ...this.data,
         ];
     }
 
@@ -233,5 +226,10 @@ export class Food extends Drawable {
     get shapes() {
         return 7;
     }
-
+    set data(data: number[] | undefined) {
+        this._data = data || [];
+    }
+    get data() {
+        return this._data;
+    }
 }

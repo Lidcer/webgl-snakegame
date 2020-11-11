@@ -3,9 +3,26 @@ import { Renderer } from '../Renderer';
 import { clamp } from '../Utils';
 import { WindowInfo } from './Interfaces';
 
-export class Snake extends Square {
-    public static readonly snakeColour = [32, 247, 90];
+interface SnakeOptions {
+    gameSpeed: number;
+    x?: number;
+    y?: number;
+    data?: number[];
+    colour?: RGB;
+}
+interface RGB {
+    r: number;
+    g: number;
+    b: number;
+}
 
+export class Snake extends Square {
+    public static readonly snakeColour: RGB = {
+        r: 32,
+        g: 247,
+        b: 90,
+    };
+    private setColour: RGB = Snake.snakeColour;
     private canGoThroughEdge = true;
     private squares: Square[] = [];
      _onGridX: number | undefined;
@@ -14,15 +31,18 @@ export class Snake extends Square {
     private snakeSize = 0.5;
     private precision = 1; // lower it is better it is at least it
 
-    constructor(renderer: Renderer, private windowInfo: WindowInfo, gameSpeed: number, x: number, y: number) {
+    constructor(renderer: Renderer, private windowInfo: WindowInfo, options: SnakeOptions) {
         super(renderer);
-        this.red = Snake.snakeColour[0];
-        this.green = Snake.snakeColour[1];
-        this.blue = Snake.snakeColour[2];
+        const colour = options.colour ? options.colour : Snake.snakeColour;
+        this.data = options.data;
+        this.red = colour.r;
+        this.green = colour.g;
+        this.blue = colour.b;
+        this.setColour = colour;
         this.setSnakeSize(windowInfo);
 
-        this.onGridX = x;
-        this.onGridY = y;
+        this.onGridX = options.x;
+        this.onGridY = options.y;
         this.y = this.sPosY;
         this.x = this.sPosX;
     }
@@ -153,10 +173,10 @@ export class Snake extends Square {
         if (!this.squares.length) {
             this.squares = [];
             for (let i = 0; i < 4; i++) {
-                const square = new Square(this.renderer);
-                square.red = Snake.snakeColour[0];
-                square.green = Snake.snakeColour[1];
-                square.blue = Snake.snakeColour[2];
+                const square = new Square(this.renderer, undefined, this.data);
+                square.red = this.setColour.r;
+                square.green = this.setColour.g;
+                square.blue = this.setColour.b;
                 this.squares.push(square);
             }
         }
@@ -215,5 +235,4 @@ export class Snake extends Square {
     private get xOffset () {
         return this.pixelSizeWidth - (this.pixelSizeWidth * this.snakeSize);
     }
-
 }
