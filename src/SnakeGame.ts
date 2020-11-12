@@ -105,7 +105,9 @@ export class SnakeGame {
         const snake = new Snake(this.renderer, this.windowInfo, {x, y, gameSpeed: this.speed, /*data: this.aData*/});
         this.snake.push(snake);
         this.gameDom.score = this.snake.length;
-        this.score = new TextRenderer(this.renderer, `${this.snake.length}`, {y: 2, x: 2, color: Snake.snakeColour, fontSize: 5});
+        if (GameOptions.showTextInGame) {
+            this.score = new TextRenderer(this.renderer, `${this.snake.length}`, {y: 2, x: 2, color: Snake.snakeColour, fontSize: 5});
+        }
     }
 
     private control = (control: Controls) => {
@@ -145,7 +147,7 @@ export class SnakeGame {
             this.direction = GameControls.Right;
             this.gameDom.bounce('left', false);
         }
-        if (directionNow === GameControls.None && directionNow !== this.direction) {
+        if (directionNow === GameControls.None && directionNow !== this.direction && GameOptions.showTextInGame) {
             this.score = new TextRenderer(this.renderer, `${this.snake.length}`, {y: 2, x: 2, color: Snake.snakeColour, fontSize: 5});
         }
     }

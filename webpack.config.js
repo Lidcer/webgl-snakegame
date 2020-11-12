@@ -1,6 +1,6 @@
 module.exports = {
-  //mode: 'development',
-  mode: "production",
+  mode: 'development',
+  //mode: "production",
   entry: {
     content: "./src/index.ts"
   },
@@ -17,5 +17,5 @@ module.exports = {
       exclude: /node_modules/,
       loaders: ["ts-loader"]
     }]
-  },
+  }
 };
